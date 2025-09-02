@@ -25,40 +25,44 @@ public class AdministradorServicoTest
         return new DbContexto(configuration);
     }
 
+    private Administrador CriarAdministradorFake()
+    {
+        return new Administrador
+        {
+            Email = "teste@teste.com",
+            Senha = "teste",
+            Perfil = "Adm"
+        };
+    }
 
     [TestMethod]
     public void TestandoSalvarAdministrador()
     {
         // Arrange
-        var context = CriarContextoDeTeste();
+        using var context = CriarContextoDeTeste();
         context.Database.ExecuteSqlRaw("TRUNCATE TABLE Administradores");
 
-        var adm = new Administrador();
-        adm.Email = "teste@teste.com";
-        adm.Senha = "teste";
-        adm.Perfil = "Adm";
-
+        var adm = CriarAdministradorFake();
         var administradorServico = new AdministradorServico(context);
 
         // Act
         administradorServico.Incluir(adm);
 
         // Assert
-        Assert.AreEqual(1, administradorServico.Todos(1).Count());
+        var lista = administradorServico.Todos(1).ToList();
+        Assert.AreEqual(1, lista.Count);
+        Assert.AreEqual(adm.Email, lista[0].Email);
+        Assert.AreEqual(adm.Perfil, lista[0].Perfil);
     }
 
     [TestMethod]
     public void TestandoBuscaPorId()
     {
         // Arrange
-        var context = CriarContextoDeTeste();
+        using var context = CriarContextoDeTeste();
         context.Database.ExecuteSqlRaw("TRUNCATE TABLE Administradores");
 
-        var adm = new Administrador();
-        adm.Email = "teste@teste.com";
-        adm.Senha = "teste";
-        adm.Perfil = "Adm";
-
+        var adm = CriarAdministradorFake();
         var administradorServico = new AdministradorServico(context);
 
         // Act
@@ -66,6 +70,9 @@ public class AdministradorServicoTest
         var admDoBanco = administradorServico.BuscaPorId(adm.Id);
 
         // Assert
-        Assert.AreEqual(1, admDoBanco?.Id);
+        Assert.IsNotNull(admDoBanco);
+        Assert.AreEqual(adm.Id, admDoBanco?.Id);     // compara o ID gerado
+        Assert.AreEqual(adm.Email, admDoBanco?.Email);
+        Assert.AreEqual(adm.Perfil, admDoBanco?.Perfil);
     }
 }
